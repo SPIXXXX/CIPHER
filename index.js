@@ -19,35 +19,37 @@ function showErrorToast(message) {
         
         // Restrict key inputs to numbers only
         document.addEventListener('DOMContentLoaded', function() {
-            const keyInputs = ['monoKey', 'polyKey'];
-            keyInputs.forEach(id => {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.addEventListener('input', function(e) {
-                        this.value = this.value.replace(/[^0-9]/g, '');
-                    });
-                }
+    // Allow letters and numbers in mono and poly keys
+    const keyInputs = ['monoKey', 'polyKey'];
+    keyInputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
             });
-            
-            // Vigenere key accepts numbers and commas only
-            const vigenereKeyInput = document.getElementById('vigenereKey');
-            if (vigenereKeyInput) {
-                vigenereKeyInput.addEventListener('input', function(e) {
-                    this.value = this.value.replace(/[^0-9,\s]/g, '');
-                });
-            }
-            
-            // Restrict plain text inputs to letters only
-            const plainTextInputs = ['monoPlainText', 'polyPlainText', 'vigenerePlainText'];
-            plainTextInputs.forEach(id => {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.addEventListener('input', function(e) {
-                        this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
-                    });
-                }
-            });
+        }
+    });
+
+    // Allow numbers, commas, and optional spaces in Vigenère key input
+    const vigenereKeyInput = document.getElementById('vigenereKey');
+    if (vigenereKeyInput) {
+        vigenereKeyInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9,\s]/g, '');
         });
+    }
+
+    // Allow letters and numbers in all plaintext fields
+    const plainTextInputs = ['monoPlainText', 'polyPlainText', 'vigenerePlainText'];
+    plainTextInputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^a-zA-Z0-9\s]/g, '');
+            });
+        }
+    });
+});
+
         
         function selectCipher(type) {
             document.getElementById('selectionScreen').style.display = 'none';
