@@ -1,24 +1,50 @@
 function showErrorToast(message) {
-            const toastContainer = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = 'error-toast';
-            toast.innerHTML = `
-                <span class="error-icon">⚠️</span>
-                <span>${message}</span>
-            `;
-            
-            toastContainer.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.classList.add('hiding');
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
-            }, 3000);
+    const toastContainer = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'error-toast';
+    toast.innerHTML = `
+        <span class="error-icon">⚠️</span>
+        <span>${message}</span>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('hiding');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3000);
+}
+
+// Helper function to convert text key to numeric value
+function textToNumericKey(text) {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    text = text.toUpperCase();
+    let sum = 0;
+    for (let char of text) {
+        if (alphabet.includes(char)) {
+            sum += alphabet.indexOf(char);
         }
-        
-        // Restrict key inputs to numbers only
-        document.addEventListener('DOMContentLoaded', function() {
+    }
+    return sum;
+}
+
+// Helper function to convert text to array of numeric values
+function textToNumericArray(text) {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    text = text.toUpperCase();
+    const values = [];
+    for (let char of text) {
+        if (alphabet.includes(char)) {
+            values.push(alphabet.indexOf(char));
+        }
+    }
+    return values;
+}
+
+// Restrict key inputs to numbers only
+document.addEventListener('DOMContentLoaded', function() {
     // Allow letters and numbers in mono and poly keys
     const keyInputs = ['monoKey', 'polyKey'];
     keyInputs.forEach(id => {
@@ -30,11 +56,11 @@ function showErrorToast(message) {
         }
     });
 
-    // Allow numbers, commas, and optional spaces in Vigenère key input
+    // Allow numbers, commas, spaces, and letters in Vigenère key input
     const vigenereKeyInput = document.getElementById('vigenereKey');
     if (vigenereKeyInput) {
         vigenereKeyInput.addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^0-9,\s]/g, '');
+            this.value = this.value.replace(/[^a-zA-Z0-9,\s]/g, '');
         });
     }
 
@@ -50,133 +76,161 @@ function showErrorToast(message) {
     });
 });
 
-        
-        function selectCipher(type) {
-            document.getElementById('selectionScreen').style.display = 'none';
-            if (type === 'mono') {
-                document.getElementById('monoCipher').classList.add('active');
-            } else if (type === 'poly') {
-                document.getElementById('polyCipher').classList.add('active');
-            } else if (type === 'vigenere') {
-                document.getElementById('vigenereCipher').classList.add('active');
-            }
+function selectCipher(type) {
+    document.getElementById('selectionScreen').style.display = 'none';
+    if (type === 'mono') {
+        document.getElementById('monoCipher').classList.add('active');
+    } else if (type === 'poly') {
+        document.getElementById('polyCipher').classList.add('active');
+    } else if (type === 'vigenere') {
+        document.getElementById('vigenereCipher').classList.add('active');
+    }
+}
+
+function goBack() {
+    document.querySelectorAll('.cipher-container').forEach(el => {
+        el.classList.remove('active');
+    });
+    document.getElementById('selectionScreen').style.display = 'block';
+    
+    // Clear inputs
+    document.querySelectorAll('.input-box').forEach(input => input.value = '');
+    document.querySelectorAll('.output-box').forEach(output => output.textContent = '');
+}
+
+function resetMono() {
+    document.getElementById('monoPlainText').value = '';
+    document.getElementById('monoKey').value = '';
+    document.getElementById('monoOutput').textContent = '';
+}
+
+function resetPoly() {
+    document.getElementById('polyPlainText').value = '';
+    document.getElementById('polyKey').value = '';
+    document.getElementById('polyOutput').textContent = '';
+}
+
+function resetVigenere() {
+    document.getElementById('vigenerePlainText').value = '';
+    document.getElementById('vigenereKey').value = '';
+    document.getElementById('vigenereOutput').textContent = '';
+}
+
+function processMonoCipher() {
+    const plainText = document.getElementById('monoPlainText').value.toUpperCase();
+    const keyInput = document.getElementById('monoKey').value;
+    
+    if (!plainText || !keyInput) {
+        showErrorToast('Please enter both plain text and key!');
+        return;
+    }
+    
+    // Determine if key is numeric or text
+    let key;
+    if (/^\d+$/.test(keyInput)) {
+        key = parseInt(keyInput);
+    } else {
+        key = textToNumericKey(keyInput);
+    }
+    
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let cipherText = '';
+    
+    for (let char of plainText) {
+        if (alphabet.includes(char)) {
+            const index = alphabet.indexOf(char);
+            const newIndex = (index + key) % 26;
+            cipherText += alphabet[newIndex];
+        } else {
+            cipherText += char;
         }
-        
-        function goBack() {
-            document.querySelectorAll('.cipher-container').forEach(el => {
-                el.classList.remove('active');
-            });
-            document.getElementById('selectionScreen').style.display = 'block';
-            
-            // Clear inputs
-            document.querySelectorAll('.input-box').forEach(input => input.value = '');
-            document.querySelectorAll('.output-box').forEach(output => output.textContent = '');
+    }
+    
+    document.getElementById('monoOutput').textContent = cipherText;
+}
+
+function processPolyCipher() {
+    const plainText = document.getElementById('polyPlainText').value.toUpperCase();
+    const keyInput = document.getElementById('polyKey').value;
+    
+    if (!plainText || !keyInput) {
+        showErrorToast('Please enter both plain text and key!');
+        return;
+    }
+    
+    // Determine if key is numeric or text
+    let key;
+    if (/^\d+$/.test(keyInput)) {
+        key = parseInt(keyInput);
+    } else {
+        key = textToNumericKey(keyInput);
+    }
+    
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let cipherText = '';
+    let prevCharValue = key; // First subkey is predefined (the key input)
+    
+    for (let i = 0; i < plainText.length; i++) {
+        const char = plainText[i];
+        if (alphabet.includes(char)) {
+            const charValue = alphabet.indexOf(char);
+            const currentKey = prevCharValue;
+            const newValue = (charValue + currentKey) % 26;
+            cipherText += alphabet[newValue];
+            prevCharValue = charValue; // Next subkey is the value of current plaintext character
+        } else {
+            cipherText += char;
         }
-        
-        function resetMono() {
-            document.getElementById('monoPlainText').value = '';
-            document.getElementById('monoKey').value = '';
-            document.getElementById('monoOutput').textContent = '';
+    }
+    
+    document.getElementById('polyOutput').textContent = cipherText;
+}
+
+function processVigenereCipher() {
+    const plainText = document.getElementById('vigenerePlainText').value.toUpperCase();
+    const keyInput = document.getElementById('vigenereKey').value;
+    
+    if (!plainText || !keyInput) {
+        showErrorToast('Please enter both plain text and key!');
+        return;
+    }
+    
+    let keyArray;
+    
+    // Check if input contains commas (numeric format)
+    if (keyInput.includes(',')) {
+        keyArray = keyInput.split(',').map(k => parseInt(k.trim())).filter(k => !isNaN(k));
+        if (keyArray.length === 0) {
+            showErrorToast('Please enter valid numbers separated by commas (e.g., 0,5,8)');
+            return;
         }
-        
-        function resetPoly() {
-            document.getElementById('polyPlainText').value = '';
-            document.getElementById('polyKey').value = '';
-            document.getElementById('polyOutput').textContent = '';
+    } else if (/^\d+$/.test(keyInput.trim())) {
+        // Pure numeric input without commas
+        keyArray = [parseInt(keyInput)];
+    } else {
+        // Text input - convert each letter to its numeric value
+        keyArray = textToNumericArray(keyInput);
+        if (keyArray.length === 0) {
+            showErrorToast('Please enter a valid key (text or numbers)');
+            return;
         }
-        
-        function resetVigenere() {
-            document.getElementById('vigenerePlainText').value = '';
-            document.getElementById('vigenereKey').value = '';
-            document.getElementById('vigenereOutput').textContent = '';
+    }
+    
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let cipherText = '';
+    let keyIndex = 0;
+    
+    for (let char of plainText) {
+        if (alphabet.includes(char)) {
+            const charPos = alphabet.indexOf(char);
+            const keyShift = keyArray[keyIndex % keyArray.length];
+            const newPos = (charPos + keyShift) % 26;
+            cipherText += alphabet[newPos];
+            keyIndex++;
+        } else {
+            cipherText += char;
         }
-        
-        function processMonoCipher() {
-            const plainText = document.getElementById('monoPlainText').value.toUpperCase();
-            const key = parseInt(document.getElementById('monoKey').value);
-            
-            if (!plainText || isNaN(key)) {
-                showErrorToast('Please enter both plain text and key!');
-                return;
-            }
-            
-            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            let cipherText = '';
-            
-            for (let char of plainText) {
-                if (alphabet.includes(char)) {
-                    const index = alphabet.indexOf(char);
-                    const newIndex = (index + key) % 26;
-                    cipherText += alphabet[newIndex];
-                } else {
-                    cipherText += char;
-                }
-            }
-            
-            document.getElementById('monoOutput').textContent = cipherText;
-        }
-        
-        function processPolyCipher() {
-            const plainText = document.getElementById('polyPlainText').value.toUpperCase();
-            const key = parseInt(document.getElementById('polyKey').value);
-            
-            if (!plainText || isNaN(key)) {
-                showErrorToast('Please enter both plain text and key!');
-                return;
-            }
-            
-            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            let cipherText = '';
-            let prevCharValue = key; // First subkey is predefined (the key input)
-            
-            for (let i = 0; i < plainText.length; i++) {
-                const char = plainText[i];
-                if (alphabet.includes(char)) {
-                    const charValue = alphabet.indexOf(char);
-                    const currentKey = prevCharValue;
-                    const newValue = (charValue + currentKey) % 26;
-                    cipherText += alphabet[newValue];
-                    prevCharValue = charValue; // Next subkey is the value of current plaintext character
-                } else {
-                    cipherText += char;
-                }
-            }
-            
-            document.getElementById('polyOutput').textContent = cipherText;
-        }
-        
-        function processVigenereCipher() {
-            const plainText = document.getElementById('vigenerePlainText').value.toUpperCase();
-            const keyInput = document.getElementById('vigenereKey').value;
-            
-            if (!plainText || !keyInput) {
-                showErrorToast('Please enter both plain text and key!');
-                return;
-            }
-            
-            // Parse the key as comma-separated numbers
-            const keyArray = keyInput.split(',').map(k => parseInt(k.trim())).filter(k => !isNaN(k));
-            
-            if (keyArray.length === 0) {
-                showErrorToast('Please enter valid numbers separated by commas (e.g., 0,5,8)');
-                return;
-            }
-            
-            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            let cipherText = '';
-            let keyIndex = 0;
-            
-            for (let char of plainText) {
-                if (alphabet.includes(char)) {
-                    const charPos = alphabet.indexOf(char);
-                    const keyShift = keyArray[keyIndex % keyArray.length];
-                    const newPos = (charPos + keyShift) % 26;
-                    cipherText += alphabet[newPos];
-                    keyIndex++;
-                } else {
-                    cipherText += char;
-                }
-            }
-            
-            document.getElementById('vigenereOutput').textContent = cipherText;
-        }
+    }
+    
+    document.getElementById('vigenereOutput').textContent = cipherText;
+}
